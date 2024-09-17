@@ -301,7 +301,11 @@ if(LIB_INSTALL_DIR)
 endif()
 
 if (NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/framework/CMakeLists.txt")
-    message(FATAL_ERROR "${CMAKE_CURRENT_SOURCE_DIR}/framework/CMakeLists.txt not found. Run `git submodule update --init` from the source tree to fetch the submodule contents.")
+    if (NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/.git/")
+        message(FATAL_ERROR "${CMAKE_CURRENT_SOURCE_DIR}/.git/ not found. Please ensure you have downloaded a release version of MBedTLS from Github.")
+    else ()
+      message(FATAL_ERROR "${CMAKE_CURRENT_SOURCE_DIR}/framework/CMakeLists.txt not found. Run `git submodule update --init` from the source tree to fetch the submodule contents.")
+    endif()
 endif()
 add_subdirectory(framework)
 
