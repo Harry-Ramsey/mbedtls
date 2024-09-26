@@ -296,7 +296,7 @@ reset:
     mbedtls_printf("  > Write to client:");
     fflush(stdout);
 
-    len = sprintf((char *) buf, HTTP_RESPONSE,
+    len = snprintf((char *) buf, sizeof(buf), HTTP_RESPONSE,
                   mbedtls_ssl_get_ciphersuite(&ssl));
 
     while ((ret = mbedtls_ssl_write(&ssl, buf, len)) <= 0) {
