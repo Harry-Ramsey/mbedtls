@@ -339,7 +339,7 @@ libtestdriver1.a:
         # ./include/test/drivers/crypto_config_test_driver_extension.h to
         # mirror the PSA_ACCEL_* macros.
 	mv ./libtestdriver1/tf-psa-crypto/include/psa/crypto_config.h ./libtestdriver1/tf-psa-crypto/include/psa/crypto_config.h.bak
-	head -n -1 ./libtestdriver1/tf-psa-crypto/include/psa/crypto_config.h.bak > ./libtestdriver1/tf-psa-crypto/include/psa/crypto_config.h
+	sed '$d' ./libtestdriver1/tf-psa-crypto/include/psa/crypto_config.h.bak > ./libtestdriver1/tf-psa-crypto/include/psa/crypto_config.h
 	cat ./include/test/drivers/crypto_config_test_driver_extension.h >> ./libtestdriver1/tf-psa-crypto/include/psa/crypto_config.h
 	echo "#endif /* PSA_CRYPTO_CONFIG_H */" >> ./libtestdriver1/tf-psa-crypto/include/psa/crypto_config.h
 
