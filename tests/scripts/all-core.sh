@@ -167,14 +167,12 @@ pre_initialize_variables () {
     if in_mbedtls_repo; then
         CONFIG_H='include/mbedtls/mbedtls_config.h'
         CONFIG_TEST_DRIVER_H='tests/include/test/drivers/config_test_driver.h'
-        COMP_MBEDTLS=$(tests/scripts/mbedtls-all.sh --list-all-components | tr '\n' ' ')
         if [ -d tf-psa-crypto ]; then
             CRYPTO_CONFIG_H='tf-psa-crypto/include/psa/crypto_config.h'
             PSA_CORE_PATH='tf-psa-crypto/core'
             BUILTIN_SRC_PATH='tf-psa-crypto/drivers/builtin/src'
             TF_PSA_CRYPTO_ROOT_DIR="$PWD/tf-psa-crypto"
-            COMP_CRYPTO=$(cd tf-psa-crypto && tests/scripts/all.sh --list-all-components | tr '\n' ' ')
-            cd ..
+            COMP_CRYPTO=$(cat ./tf-psa-crypto/tests/scripts/tf-psa-crypto-components.txt)
         else
             CRYPTO_CONFIG_H='include/psa/crypto_config.h'
             # helper_armc6_build_test() relies on these being defined,
@@ -189,7 +187,7 @@ pre_initialize_variables () {
         PSA_CORE_PATH='core'
         BUILTIN_SRC_PATH='drivers/builtin/src'
         TF_PSA_CRYPTO_ROOT_DIR="$PWD"
-        COMP_CRYPTO=$(tests/scripts/all.sh --list-all-components | tr '\n' ' ')
+        COMP_CRYPTO=$(cat ./tests/scripts/tf-psa-crypto-components.txt)
 
         config_files="$CRYPTO_CONFIG_H"
     fi
@@ -417,6 +415,9 @@ cleanup()
     rm -rf programs/test/cmake_package_install/build
     rm -f programs/test/cmake_package_install/Makefile
     rm -f programs/test/cmake_package_install/cmake_package_install
+
+    # Remove tf-psa-crypto component list.
+    rm -rf tf-psa-crypto/tests/scripts/tf-psa-crypto-components.txt
 
     # Restore files that may have been clobbered by the job
     restore_backed_up_files
@@ -937,10 +938,6 @@ run_component () {
     current_component="$1"
     export MBEDTLS_TEST_CONFIGURATION="$current_component"
 
-    if [ $(is_in "$current_component" "$COMP_CRYPTO") ]; then
-        pre_create_tf_psa_crypto_out_of_source_directory
-    fi
-
     # Unconditionally create a seedfile that's sufficiently long.
     # Do this before each component, because a previous component may
     # have messed it up or shortened it.
@@ -1018,6 +1015,16 @@ cleanup_tf_psa_crypto_out_of_source_directory () {
     echo "Cleaned temp directory"
 }
 
+# tell if $1 is in space-separated list $2
+is_in() {
+    needle=$1
+    haystack=$2
+    case " $haystack " in
+        *" $needle "*) echo 1;;
+        *) echo 0;;
+    esac
+}
+
 ################################################################
 #### Main
 ################################################################
@@ -1034,8 +1041,8 @@ main () {
 
     setup_quiet_wrappers
     pre_check_git
-    pre_restore_files
-    pre_back_up
+    #pre_restore_files
+    #pre_back_up
 
     build_status=0
     if [ $KEEP_GOING -eq 1 ]; then
