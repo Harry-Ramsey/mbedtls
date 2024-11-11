@@ -65,8 +65,9 @@ fi
 comp_name=$4
 
 # Get the list of components available on each side.
-COMP_MBEDTLS=$(tests/scripts/mbedtls-all.sh --list-all-components | tr '\n' ' ')
-COMP_CRYPTO=$(cd tf-psa-crypto && tests/scripts/all.sh --list-all-components | tr '\n' ' ')
+COMP_MBEDTLS=$(tests/scripts/mbedtls-all.sh --list-all-components | tr '\n' ' ' | cat)
+COMP_CRYPTO=$(cd tf-psa-crypto && tests/scripts/all.sh --list-all-components | tr '\n' ' ' | cat)
+echo "$COMP_CRYPTO" > "tf-psa-crypto/tests/scripts/tf-psa-crypto-components.txt"
 
 # tell if $1 is in space-separated list $2
 is_in() {

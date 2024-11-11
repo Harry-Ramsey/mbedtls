@@ -959,6 +959,10 @@ run_component () {
         "${dd_cmd[@]}"
     fi
 
+    if [ $(is_in "$current_component" "$COMP_CRYPTO") ]; then
+        pre_create_tf_psa_crypto_out_of_source_directory
+    fi
+
     # Run the component in a subshell, with error trapping and output
     # redirection set up based on the relevant options.
     if [ $KEEP_GOING -eq 1 ]; then
