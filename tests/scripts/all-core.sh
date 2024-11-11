@@ -167,17 +167,21 @@ pre_initialize_variables () {
     if in_mbedtls_repo; then
         CONFIG_H='include/mbedtls/mbedtls_config.h'
         CONFIG_TEST_DRIVER_H='tests/include/test/drivers/config_test_driver.h'
+        COMP_MBEDTLS=$(tests/scripts/mbedtls-all.sh --list-all-components | tr '\n' ' ')
         if [ -d tf-psa-crypto ]; then
             CRYPTO_CONFIG_H='tf-psa-crypto/include/psa/crypto_config.h'
             PSA_CORE_PATH='tf-psa-crypto/core'
             BUILTIN_SRC_PATH='tf-psa-crypto/drivers/builtin/src'
             TF_PSA_CRYPTO_ROOT_DIR="$PWD/tf-psa-crypto"
+            COMP_CRYPTO=$(cd tf-psa-crypto && tests/scripts/all.sh --list-all-components | tr '\n' ' ')
+            cd ..
         else
             CRYPTO_CONFIG_H='include/psa/crypto_config.h'
             # helper_armc6_build_test() relies on these being defined,
             # but empty if the paths don't exist (as in 3.6).
             PSA_CORE_PATH=''
             BUILTIN_SRC_PATH=''
+            COMP_CRYPTO=''
         fi
         config_files="$CONFIG_H $CRYPTO_CONFIG_H $CONFIG_TEST_DRIVER_H"
     else
@@ -185,6 +189,7 @@ pre_initialize_variables () {
         PSA_CORE_PATH='core'
         BUILTIN_SRC_PATH='drivers/builtin/src'
         TF_PSA_CRYPTO_ROOT_DIR="$PWD"
+        COMP_CRYPTO=$(tests/scripts/all.sh --list-all-components | tr '\n' ' ')
 
         config_files="$CRYPTO_CONFIG_H"
     fi
@@ -932,6 +937,10 @@ run_component () {
     current_component="$1"
     export MBEDTLS_TEST_CONFIGURATION="$current_component"
 
+    if [ $(is_in "$current_component" "$COMP_CRYPTO") ]; then
+        pre_create_tf_psa_crypto_out_of_source_directory
+    fi
+
     # Unconditionally create a seedfile that's sufficiently long.
     # Do this before each component, because a previous component may
     # have messed it up or shortened it.
@@ -984,6 +993,10 @@ run_component () {
     fi
 
     # Restore the build tree to a clean state.
+    if [ $(is_in "$current_component" "$COMP_CRYPTO") ]; then
+        cleanup_tf_psa_crypto_out_of_source_directory
+    fi
+
     cleanup
     unset current_component
 }
